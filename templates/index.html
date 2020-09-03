@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %} WxMusic {% endblock title %}
+
+{% block content %}
+<div class="flex_center full_space" style="border:solid;">
+    <div class="flex_center content_box">
+        <form method="POST" action="/" id="get_location">
+            <input type="hidden" name="hidden_lat" value="" id="hidden_lat">
+            <input type="hidden" name="hidden_long" value="" id="hidden_long">
+            <button type="button" id="start_button" onClick="getLocation()" class="btn btn-primary">
+                Click to Play
+            </button>
+
+        </form>
+        <p id="error_report"></p>
+    </div>
+
+
+</div>
+
+<script>
+	var report = document.getElementById("error_report");
+	function getLocation() {
+        document.getElementById("start_button").innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking Weather...';
+	    if (navigator.geolocation) {
+	        navigator.geolocation.getCurrentPosition(addInfoSubmit);
+	    } 
+	    else {
+	        report.innerHTML = "Geolocation is not supported by this browser. Please insert your Zip Code.";
+	    }
+	}
+
+	function addInfoSubmit(position) {
+	    document.getElementById("hidden_lat").value = position.coords.latitude;
+	    document.getElementById("hidden_long").value = position.coords.longitude;
+	    document.getElementById("get_location").submit();
+	}
+
+</script>
+
+{% endblock content %}

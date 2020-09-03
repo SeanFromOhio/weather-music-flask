@@ -1,0 +1,30 @@
+html, body {
+    margin: 0;
+    font-family: sans-serif;
+    height: 100%;
+}
+
+#cloud_frame {
+    background: {{ url_for('static', filename='images/pexels-cloud.jpg') }}
+    border: solid;
+}
+
+.content {
+    font-family: meridian;
+}
+
+.flex_center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.full_space {
+    height: 100%;
+}
+
+.content_box {
+    width:600px;
+    height:300px;
+    border: solid;
+}
