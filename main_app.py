@@ -44,15 +44,19 @@ def index():
         elif "Sunny" or "Fair" or "Clear" in wx_text_description:
             print("Sun")
             wx_type = "Sun"
+            return redirect("Sun")
         elif "Snow" or "Freezing Rain" or "Sleet" in wx_text_description:
             print("Snow")
             wx_type = "Snow"
+            return redirect("Snow")
         elif "Rain" in wx_text_description:
             print("Rain")
             wx_type = "Rain"
+            return redirect("Rain")
         elif "Thunderstorm" or "Storm" in wx_text_description:
             print("Storm")
             wx_type = "Storm"
+            return redirect("Storm")
 
         return render_template("index.html", wx_type=wx_type)
     else:

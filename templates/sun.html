@@ -2,13 +2,24 @@
 {% block title %} WxMusic | Sunny {% endblock title %}
 
 {% block content %}
-<div class="flex_center full_space">
+<div class="flex_center full_space" id="sun_frame">
     <div class="flex_center content_box">
+        <!--
         <iframe width="600" height="300"
                 src="https://www.youtube.com/embed/videoseries?list=PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT&autoplay=1"
                 frameborder="0" allow="autoplay; encrypted-media rel=0 fs=0"
                 >
+        </iframe>-->
+        <iframe src="https://open.spotify.com/embed/playlist/37i9dQZF1DWVpjAJGB70vU"
+                width="600" height="80" frameborder="0" allowtransparency="true"
+                allow="encrypted-media">
         </iframe>
     </div>
 </div>
+
+<script>
+    document.onload = function() {
+        document.querySelector('[title="Play"]').click()
+    }
+</script>
 {% endblock content %}

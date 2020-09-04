@@ -11,6 +11,10 @@
     <title>{% block title %}{% endblock title %}</title>
 </head>
 <body>
+<!-- NavBar -->
+{% block navbar %} {% include "partials/_navbar.html" %} {% endblock navbar %}
+
+<!-- Body -->
 {% block content %}
 
 {% endblock content %}
