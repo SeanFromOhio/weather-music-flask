@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %} WxMusic | Login {% endblock title %}
+
+{% block content %}
+<div class="flex_center full_space">
+    <div class="flex_center content_box">
+        <form action="" method="POST" class="form_box text-center">
+            {{ form.hidden_tag() }}
+            <p>
+                {{ form.username.label }} <br>
+                {{ form.username(size=30, class="form-control") }}
+            </p>
+            <p>
+                {{ form.password.label }} <br>
+                {{ form.password(size=30, class="form-control") }}
+            </p>
+            <p style="margin-top: 10px;">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock content %}

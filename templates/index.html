@@ -2,8 +2,8 @@
 {% block title %} WxMusic {% endblock title %}
 
 {% block content %}
-<div class="flex_center full_space" style="border:solid;">
-    <div class="flex_center content_box">
+<div class="flex_center full_space" id="index_frame">
+    <div class="flex_center content_box" style="background: white;">
         <form method="POST" action="/" id="get_location">
             <input type="hidden" name="hidden_lat" value="" id="hidden_lat">
             <input type="hidden" name="hidden_long" value="" id="hidden_long">
@@ -12,30 +12,60 @@
             </button>
 
         </form>
-        <p id="error_report"></p>
+        <div class="text-center" id="error_div" style="display: none; padding: 10px;">
+            <p id="error_report" style="margin: 10px; font-weight: bold;"></p>
+            <form method="POST" action="/">
+                <label for="user_zip">Zip Code:</label>
+                <input type="text" id="user_zip" name="user_zip" class="form-control text-center">
+                <button type="submit" class="btn btn-primary" style="margin: 20px;">Try Again</button>
+            </form>
+        </div>
     </div>
 
 
 </div>
 
 <script>
+// The paragraph tag to tell the user if an error occured, and what to do. //
 	var report = document.getElementById("error_report");
+
+// The main function that creates the location object to be used in analysis, or provides the error to be used in the error function //
 	function getLocation() {
         document.getElementById("start_button").innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking Weather...';
 	    if (navigator.geolocation) {
-	        navigator.geolocation.getCurrentPosition(addInfoSubmit);
+	        navigator.geolocation.getCurrentPosition(addInfoSubmit, geolocationError);
 	    } 
 	    else {
-	        report.innerHTML = "Geolocation is not supported by this browser. Please insert your Zip Code.";
+	        report.innerHTML = "Geolocation is not supported by this browser or is disabled. Please insert your Zip Code instead.";
 	    }
 	}
 
+// This function finds the coordinates of the user and then submits it back to the index function to be used in the NWS API //
 	function addInfoSubmit(position) {
 	    document.getElementById("hidden_lat").value = position.coords.latitude;
 	    document.getElementById("hidden_long").value = position.coords.longitude;
 	    document.getElementById("get_location").submit();
 	}
 
+// This function handles errors, with the major error being user denying the request //
+    function geolocationError(error) {
+        document.getElementById("get_location").style.display = "none";
+        document.getElementById("error_div").style.display = "block";
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                report.innerHTML = "You've denied the location request. Please input a zip code instead."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                report.innerHTML = "Your location information was unavailable. Please input a zip code instead."
+                break;
+            case error.TIMEOUT:
+                report.innerHTML = "Your location request timed out. Please input a zip code instead."
+                break;
+            case error.UNKNOWN_ERROR:
+                report.innerHTML = "An unknown error occured. Please input a zip code instead."
+                break;
+        }
+    }
 </script>
 
 {% endblock content %}

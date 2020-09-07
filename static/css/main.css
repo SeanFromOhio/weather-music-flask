@@ -4,12 +4,26 @@ html, body {
     height: 100%;
 }
 
+h2 {
+    padding-bottom: 5%;
+}
+
+#index_frame {
+    background: url(/static/images/ethan-sun.jpg);
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: 25px solid white;
+    border-top: 0;
+    background-color: gray;
+}
+
 #cloud_frame {
     background: url(/static/images/pexels-cloud.jpg);
     background-position: center center;
     background-size: cover;
     background-repeat: no-repeat;
-    border: 25px solid white;
+    border: 0px solid white;
     border-top: 0;
     background-color: gray;
 }
@@ -35,7 +49,7 @@ html, body {
 }
 
 #snow_frame {
-    background: url(/static/images/pexels-cloud.jpg);
+    background: url(/static/images/pexels-snow.jpg);
     background-position: center center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -45,7 +59,7 @@ html, body {
 }
 
 #storm_frame {
-    background: url(/static/images/pexels-cloud.jpg);
+    background: url(/static/images/pexels-storm.jpg);
     background-position: center center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -72,4 +86,21 @@ html, body {
     width:600px;
     height:300px;
     border: solid;
+}
+
+.form_box {
+    width: 65%;
+    height: 100%;
+    padding: 0px;
+}
+
+canvas {
+    background: url(/static/images/pexels-snow.jpg);
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border: 25px solid white;
+    border-top: 0;
+    background-color: gray;
+    position: absolute;
 }

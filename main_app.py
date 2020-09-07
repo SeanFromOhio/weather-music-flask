@@ -1,19 +1,50 @@
 from flask import Flask, render_template, url_for, request, redirect
 from flask_sqlalchemy import SQLAlchemy
+import flask
 import requests
+from forms import SignupForm, LoginForm
+from flask_login import logout_user, LoginManager, UserMixin, login_user, login_required
+from datetime import datetime
 
 app = Flask(__name__)
-app.config["SQLAlchemy_DATABASE_URL"] = "sqlite:///"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///WxMusic.db"
+app.config["SECRET_KEY"] = "s3cr3tk3y"
+db = SQLAlchemy(app)
+
+login_manager = LoginManager()
+login_manager.login_view = "/login"
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
 
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
-        # Form accessing user location using HTML5 Geolocation API
-        user_lat = request.form["hidden_lat"]
-        user_long = request.form["hidden_long"]
-        user_coords = user_lat + "," + user_long
-        #print(user_coords)
+        form_check_geo = request.form.get("hidden_lat", None)  # Needed to check if the geolocation form was submitted
+
+        # This checks which form was submitted; geolocation or the zip code form
+        if form_check_geo:
+            # Form accessing user location using HTML5 Geolocation API
+            user_lat = request.form["hidden_lat"]
+            user_long = request.form["hidden_long"]
+            user_coords = user_lat + "," + user_long
+            #print(user_coords)
+
+        else:
+            # Used Google's geocoding API, which takes the user zip code input and outputs the lat/long of that location
+            google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
+            user_zip = request.form["user_zip"]
+            zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip + "&key=" + google_api_key
+
+            coords_data = requests.get(zip_code_coords_url)  # API request
+            coords_data_json = coords_data.json()  # Necessary to access the data as a dictionary (json...)
+            user_lat = str(coords_data_json["results"][0]["geometry"]["location"]["lat"])
+            user_long = str(coords_data_json["results"][0]["geometry"]["location"]["lng"])
+            user_coords = user_lat + "," + user_long  # Format to be used in the NWS API
 
         # User user coordinates to access National Weather Service (NWS) API
         # First, must find closest weather observation station using the following url:
@@ -33,10 +64,12 @@ def index():
         wx_data_json = wx_data.json()
 
         # Grab the specific weather text description, could be multiple elements.
-        wx_text_description = wx_data_json["properties"]["textDescription"]
+        #wx_text_description = wx_data_json["properties"]["textDescription"]
+        wx_text_description = wx_data_json["properties"]["presentWeather"][0]["rawString"]
         print(wx_text_description)
         wx_type = None
 
+        # Redo this utilizing regex, any, or a different method. NOT FUNCTIONING PROPERLY!!!
         if "Cloud" in wx_text_description:
             print("Cloud")
             wx_type = "Cloud"
@@ -53,7 +86,7 @@ def index():
             print("Rain")
             wx_type = "Rain"
             return redirect("Rain")
-        elif "Thunderstorm" or "Storm" in wx_text_description:
+        elif "Thunderstorm" or "Storm" or "Thunderstorms" or "TS" in wx_text_description:
             print("Storm")
             wx_type = "Storm"
             return redirect("Storm")
@@ -88,5 +121,67 @@ def storm():
     return render_template("storm.html")
 
 
+@app.route("/Profile")
+@login_required
+def profile():
+    return render_template("profile.html")
+
+
+@app.route("/signup", methods=["POST", "GET"])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        new_user_username = request.form["username"]
+        new_user_password = request.form["password"]
+
+        try:
+            new_user = User(username=new_user_username, password=new_user_password)
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect("/")
+        except:
+            return "There was an issue creating your account. Try a different username."
+
+    else:
+        return render_template("authentication/signup.html", form=form)
+
+
+@app.route("/login", methods=["POST", "GET"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = request.form["username"]
+        password = request.form["password"]
+
+        user = User.query.filter_by(username=username).first()
+
+        if not user or not user.password == password:
+            flask.flash("Looks like your login details were incorrect, please try again.")
+            return redirect("/login")
+
+        login_user(user)
+        flask.flash('Logged in successfully.')
+        return redirect("/")
+    return render_template("authentication/login.html", form=form)
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return render_template("authentication/logout.html")
+
+
+# User Model -----------------------------
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(30), unique=True, nullable=False)
+    password = db.Column(db.String(30), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow())
+
+    def __repr__(self):
+        return self.username
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8000)
