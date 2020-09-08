@@ -5,6 +5,7 @@ import requests
 from forms import SignupForm, LoginForm
 from flask_login import logout_user, LoginManager, UserMixin, login_user, login_required
 from datetime import datetime
+import re
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///WxMusic.db"
@@ -39,12 +40,19 @@ def index():
             google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
             user_zip = request.form["user_zip"]
             zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip + "&key=" + google_api_key
+            #print(zip_code_coords_url)
 
             coords_data = requests.get(zip_code_coords_url)  # API request
             coords_data_json = coords_data.json()  # Necessary to access the data as a dictionary (json...)
-            user_lat = str(coords_data_json["results"][0]["geometry"]["location"]["lat"])
-            user_long = str(coords_data_json["results"][0]["geometry"]["location"]["lng"])
-            user_coords = user_lat + "," + user_long  # Format to be used in the NWS API
+
+            # Checks if the user entered a valid zip code, if not it tells the user to try again.
+            if coords_data_json["status"] == "ZERO_RESULTS":
+                flask.flash('That is not a valid Zip Code (US), please try again!')
+                return render_template("index.html")
+            else:
+                user_lat = str(coords_data_json["results"][0]["geometry"]["location"]["lat"])
+                user_long = str(coords_data_json["results"][0]["geometry"]["location"]["lng"])
+                user_coords = user_lat + "," + user_long  # Format to be used in the NWS API
 
         # User user coordinates to access National Weather Service (NWS) API
         # First, must find closest weather observation station using the following url:
@@ -64,34 +72,41 @@ def index():
         wx_data_json = wx_data.json()
 
         # Grab the specific weather text description, could be multiple elements.
-        #wx_text_description = wx_data_json["properties"]["textDescription"]
-        wx_text_description = wx_data_json["properties"]["presentWeather"][0]["rawString"]
-        print(wx_text_description)
-        wx_type = None
+        # Check if presentWeather has data, if not it implies there's no precipitation occuring, therefore it's
+        # sunny or cloudy. Thus, we utilize textDescription is order to determine which.
+        present_weather_len = len(wx_data_json["properties"]["presentWeather"])
+        if present_weather_len > 0:
+            wx_text_description = wx_data_json["properties"]["presentWeather"][0]["rawString"]
+        else:
+            wx_text_description = wx_data_json["properties"]["textDescription"]
 
-        # Redo this utilizing regex, any, or a different method. NOT FUNCTIONING PROPERLY!!!
-        if "Cloud" in wx_text_description:
+        # The filters are needed as similar conditions have different names. The rawStrings are an easy
+        # identifier for the type of precipitation or weather effect (Thunderstorms...)
+        sun_words_filter = re.compile(r'\b(Sun|Clear|Fair)\b').search
+        cloud_words_filter = re.compile(r'\b(Clouds|Cloudy)\b').search
+        rain_rawstring_filter = re.compile(r'\b(RA|BR|DZ|SH)\b').search
+        storm_rawstring_filter = re.compile(r'\b(TS|FC|GR|)\b').search
+        snow_rawstring_filter = re.compile(r'\b(SN|SW|SP|SG|S|FZRA|SNINCR)\b').search
+
+        # Conditionals utilizing regular expressions to hunt for a word match from the NWS datam which then
+        # redirects to the appropriate page.
+        if cloud_words_filter(wx_text_description):
             print("Cloud")
-            wx_type = "Cloud"
             return redirect("Cloud")
-        elif "Sunny" or "Fair" or "Clear" in wx_text_description:
+        elif sun_words_filter(wx_text_description):
             print("Sun")
-            wx_type = "Sun"
             return redirect("Sun")
-        elif "Snow" or "Freezing Rain" or "Sleet" in wx_text_description:
+        elif snow_rawstring_filter(wx_text_description):
             print("Snow")
-            wx_type = "Snow"
             return redirect("Snow")
-        elif "Rain" in wx_text_description:
+        elif rain_rawstring_filter(wx_text_description):
             print("Rain")
-            wx_type = "Rain"
             return redirect("Rain")
-        elif "Thunderstorm" or "Storm" or "Thunderstorms" or "TS" in wx_text_description:
+        elif storm_rawstring_filter(wx_text_description):
             print("Storm")
-            wx_type = "Storm"
             return redirect("Storm")
 
-        return render_template("index.html", wx_type=wx_type)
+        return render_template("index.html")
     else:
         return render_template("index.html")
 

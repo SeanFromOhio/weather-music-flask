@@ -3,12 +3,12 @@
 
 {% block content %}
 <div class="flex_center full_space" id="index_frame">
-    <div class="flex_center content_box" style="background: white;">
+    <div class="flex_center content_box" style="background: rgba(255,255,255,0.4);">
         <form method="POST" action="/" id="get_location">
             <input type="hidden" name="hidden_lat" value="" id="hidden_lat">
             <input type="hidden" name="hidden_long" value="" id="hidden_long">
             <button type="button" id="start_button" onClick="getLocation()" class="btn btn-primary">
-                Click to Play
+                Click for WeatherMusic
             </button>
 
         </form>
@@ -16,8 +16,9 @@
             <p id="error_report" style="margin: 10px; font-weight: bold;"></p>
             <form method="POST" action="/">
                 <label for="user_zip">Zip Code:</label>
-                <input type="text" id="user_zip" name="user_zip" class="form-control text-center">
-                <button type="submit" class="btn btn-primary" style="margin: 20px;">Try Again</button>
+                <input type="text" id="user_zip" name="user_zip" class="form-control text-center"
+                       minlength="5" maxlength="5" required>
+                <button type="submit" class="btn btn-primary" style="margin: 20px;">Try Now</button>
             </form>
         </div>
     </div>

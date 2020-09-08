@@ -4,9 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <!-- bootstrap stylesheet -->
     <link rel="stylesheet"
           href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
           integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous"
+    >
+    <!-- Glyphicons library -->
+    <link rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ"
           crossorigin="anonymous"
     >
     <!-- My stylesheet -->
@@ -15,6 +22,15 @@
 </head>
 
 <body>
+    <div class="container">
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+
     <!-- JS scripts -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
             integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
@@ -33,5 +49,48 @@
 {% block content %}
 
 {% endblock content %}
+    <script>
+        // Pause and Play buttons to control the YouTube video
+        document.getElementById("play_button").addEventListener("click",
+        function() {
+            document.getElementById("play_button").style.display = "none";
+            document.getElementById("pause_button").style.display = "block";
+        });
+
+        document.getElementById("pause_button").addEventListener("click",
+        function() {
+            document.getElementById("play_button").style.display = "block";
+            document.getElementById("pause_button").style.display = "none";
+        });
+
+        // The following is the script to use JS with the YouTube API via google //
+        var tag = document.createElement('script');
+
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('video', {
+                events: {
+                    'onReady': onPlayerReady,
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            var playButton = document.getElementById("play_button");
+            playButton.addEventListener("click", function() {
+                player.playVideo();
+            });
+
+            var pauseButton = document.getElementById("pause_button");
+            pauseButton.addEventListener("click", function() {
+                player.pauseVideo();
+            });
+        }
+
+    </script>
 </body>
 </html>
