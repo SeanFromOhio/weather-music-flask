@@ -76,6 +76,7 @@ h2 {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 }
 
 .full_space {
@@ -87,6 +88,7 @@ h2 {
     height:300px;
     border: solid;
     border-radius: 50px;
+    background: rgba(255,255,255,0.4);
 }
 
 .form_box {
@@ -98,5 +100,11 @@ h2 {
 .vid_button {
     height: 50px;
     width: 50px;
-    margin: auto;
+    margin-bottom: 15px;
+}
+
+.song_title_p {
+    display: block;
+    background:;
+    font-weight: bold;
 }

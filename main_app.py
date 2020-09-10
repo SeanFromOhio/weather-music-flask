@@ -119,6 +119,7 @@ def index():
         return render_template("index.html")
 
 
+# Using YouTube Data API to construct a list with all my songs from a specified playlist
 def get_playlist_titles(playlist_id):
     google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
     rain_playlist_url = requests.get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50"
@@ -137,40 +138,35 @@ def get_playlist_titles(playlist_id):
 @app.route("/Cloud")
 def cloud():
     playlist_id = "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch"
-    song_title_list = get_playlist_titles(playlist_id)
-    print(song_title_list)
+    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("cloud.html")
 
 
 @app.route("/Sun")
 def sun():
     playlist_id = "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT"
-    song_title_list = get_playlist_titles(playlist_id)
-    print(song_title_list)
+    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("sun.html")
 
 
 @app.route("/Rain")
 def rain():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    song_title_list = get_playlist_titles(playlist_id)
-    print(song_title_list)
+    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("rain.html")
 
 
 @app.route("/Snow")
 def snow():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    song_title_list = get_playlist_titles(playlist_id)
-    print(song_title_list)
+    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("snow.html")
 
 
 @app.route("/Storm")
 def storm():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    song_title_list = get_playlist_titles(playlist_id)
-    print(song_title_list)
+    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("storm.html")
 
 
