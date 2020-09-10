@@ -50,7 +50,7 @@
 
 {% endblock content %}
     <script>
-        // Pause and Play buttons to control the YouTube video
+    // Pause and Play buttons to control the YouTube video
         document.getElementById("play_button").addEventListener("click",
         function() {
             document.getElementById("play_button").style.display = "none";
@@ -62,34 +62,6 @@
             document.getElementById("play_button").style.display = "block";
             document.getElementById("pause_button").style.display = "none";
         });
-
-        // The following is the script to use JS with the YouTube API via google //
-        var tag = document.createElement('script');
-
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        var player;
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('video', {
-                events: {
-                    'onReady': onPlayerReady,
-                }
-            });
-        }
-
-        function onPlayerReady(event) {
-            var playButton = document.getElementById("play_button");
-            playButton.addEventListener("click", function() {
-                player.playVideo();
-            });
-
-            var pauseButton = document.getElementById("pause_button");
-            pauseButton.addEventListener("click", function() {
-                player.pauseVideo();
-            });
-        }
 
     </script>
 </body>

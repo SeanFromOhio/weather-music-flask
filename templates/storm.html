@@ -4,11 +4,56 @@
 {% block content %}
 <div class="flex_center full_space" id="storm_frame">
     <div class="flex_center content_box">
-        <iframe width="600" height="300"
-                src="https://www.youtube.com/embed/videoseries?list=PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch&autoplay=1"
-                frameborder="0" allow="autoplay; encrypted-media rel=0 fs=0"
-                >
-        </iframe>
+        <!-- This div will fill with the YouTube "iframe" player -->
+        <div id="player"></div>
+
+        <!-- These buttons will be used across the different weather pages and has the JS housed in the base.html -->
+        <button class="btn btn-primary" id="play_button" style="display: none;"><i class="fas fa-play"></i></button>
+        <button class="btn btn-primary" id="pause_button" ><i class="fas fa-pause"></i></button>
     </div>
 </div>
+
+<script>
+// The following is the script to use JS with the YouTube API via google, hence the numbered steps. //
+// 2. This code loads the IFrame Player API code asynchronously.
+    var tag = document.createElement('script');
+
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+// 3. This function creates an <iframe> (and YouTube player) after the API code downloads.
+// This is only used for audio, so height and width are 0
+    function onYouTubeIframeAPIReady() {
+        var rand_index = Math.floor((Math.random() * 7) + 1)
+        var player = new YT.Player("player", {
+            height: '0',
+            width: '0',
+            playerVars: {
+                listType:'playlist',
+                list:'PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer',
+                index: rand_index,
+                autoplay: 1,
+            },
+            events: {
+                'onReady': function (event) {
+                    setTimeout(function() {
+                        event.target.setShuffle({'shufflePlaylist' : true});
+                    }, 1000);
+
+                    var playButton = document.getElementById("play_button");
+                    playButton.addEventListener("click", function() {
+                        player.playVideo();
+                    });
+
+                    var pauseButton = document.getElementById("pause_button");
+                    pauseButton.addEventListener("click", function() {
+                        player.pauseVideo();
+                    });
+                }
+            }
+        });
+    }
+
+</script>
 {% endblock content %}

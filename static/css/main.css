@@ -86,6 +86,7 @@ h2 {
     width:600px;
     height:300px;
     border: solid;
+    border-radius: 50px;
 }
 
 .form_box {

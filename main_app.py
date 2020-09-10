@@ -49,6 +49,7 @@ def index():
             if coords_data_json["status"] == "ZERO_RESULTS":
                 flask.flash('That is not a valid Zip Code (US), please try again!')
                 return render_template("index.html")
+
             else:
                 user_lat = str(coords_data_json["results"][0]["geometry"]["location"]["lat"])
                 user_long = str(coords_data_json["results"][0]["geometry"]["location"]["lng"])
@@ -65,11 +66,17 @@ def index():
 
         # Access the json data and grabs the needed url with the necessary page added on
         wx_observ_url = station_data_json["features"][0]["id"] + "/observations/latest"
-        #print(wx_observ_url)
+        print(wx_observ_url)
 
         # Now we have all the wx data from the closest observation station
         wx_data = requests.get(wx_observ_url)
-        wx_data_json = wx_data.json()
+        # NWS API goes down from time to time, so let's catch that error:
+        try:
+            wx_data_json = wx_data.json()
+
+        except:
+            flask.flash("The Weather API is currently down, meaning no weather data. It will be back up soon!")
+            return render_template("index.html")
 
         # Grab the specific weather text description, could be multiple elements.
         # Check if presentWeather has data, if not it implies there's no precipitation occuring, therefore it's
@@ -82,7 +89,7 @@ def index():
 
         # The filters are needed as similar conditions have different names. The rawStrings are an easy
         # identifier for the type of precipitation or weather effect (Thunderstorms...)
-        sun_words_filter = re.compile(r'\b(Sun|Clear|Fair)\b').search
+        sun_words_filter = re.compile(r'\b(Sun|Clear|Fair|FG)\b').search
         cloud_words_filter = re.compile(r'\b(Clouds|Cloudy)\b').search
         rain_rawstring_filter = re.compile(r'\b(RA|BR|DZ|SH)\b').search
         storm_rawstring_filter = re.compile(r'\b(TS|FC|GR|)\b').search
@@ -175,7 +182,6 @@ def login():
             return redirect("/login")
 
         login_user(user)
-        flask.flash('Logged in successfully.')
         return redirect("/")
     return render_template("authentication/login.html", form=form)
 

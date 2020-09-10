@@ -7,11 +7,15 @@
         <form method="POST" action="/" id="get_location">
             <input type="hidden" name="hidden_lat" value="" id="hidden_lat">
             <input type="hidden" name="hidden_long" value="" id="hidden_long">
-            <button type="button" id="start_button" onClick="getLocation()" class="btn btn-primary">
-                Click for WeatherMusic
-            </button>
-
+            <div class="text-center">
+                <button style="display: block;" type="button" id="start_button" onClick="getLocation()" class="btn btn-primary">
+                    Click for WeatherMusic
+                </button>
+                <small><a type="button" onClick="manualZipEntry()" style="color: blue;">Manual Zip Entry</a></small>
+            </div>
         </form>
+
+        <!-- This allows the user ot input their zip code if they deny location tracking -->
         <div class="text-center" id="error_div" style="display: none; padding: 10px;">
             <p id="error_report" style="margin: 10px; font-weight: bold;"></p>
             <form method="POST" action="/">
@@ -19,6 +23,16 @@
                 <input type="text" id="user_zip" name="user_zip" class="form-control text-center"
                        minlength="5" maxlength="5" required>
                 <button type="submit" class="btn btn-primary" style="margin: 20px;">Try Now</button>
+            </form>
+        </div>
+
+
+        <div class="text-center" id="manual_zip" style="display: none; padding: 10px;">
+            <form method="POST" action="/">
+                <label for="manual_user_zip">Zip Code:</label>
+                <input type="text" id="manual_user_zip" name="user_zip" class="form-control text-center"
+                       minlength="5" maxlength="5" required>
+                <button type="submit" class="btn btn-primary" style="margin: 20px;">Play WeatherMusic</button>
             </form>
         </div>
     </div>
@@ -63,10 +77,16 @@
                 report.innerHTML = "Your location request timed out. Please input a zip code instead."
                 break;
             case error.UNKNOWN_ERROR:
-                report.innerHTML = "An unknown error occured. Please input a zip code instead."
+                report.innerHTML = "An unknown error occurred. Please input a zip code instead."
                 break;
         }
     }
+
+// Allows for manual zip code entry by link click //
+    function manualZipEntry() {
+        document.getElementById("get_location").style.display = "none";
+        document.getElementById("manual_zip").style.display = "block";
+    };
 </script>
 
 {% endblock content %}

@@ -2,135 +2,58 @@
 {% block title %} WxMusic | Snowing {% endblock title %}
 
 {% block content %}
+<div class="flex_center full_space" id="snow_frame">
+    <div class="flex_center content_box" style="position: relative;">
+        <!-- This div will fill with the YouTube "iframe" player -->
+        <div id="player"></div>
 
-    <div class="flex_center full_space" id="">
-        <canvas id="canvas"></canvas>
-        <div class="flex_center content_box" style="position: relative;">
-            <iframe width="600" height="300"
-                    src="https://www.youtube.com/embed/videoseries?list=PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch&autoplay=1"
-                    frameborder="0" allow="autoplay; encrypted-media rel=0 fs=0"
-                    >
-            </iframe>
-        </div>
+        <!-- These buttons will be used across the different weather pages and has the JS housed in the base.html -->
+        <button class="btn btn-primary" id="play_button" style="display: none;"><i class="fas fa-play"></i></button>
+        <button class="btn btn-primary" id="pause_button"><i class="fas fa-pause"></i></button>
     </div>
-
+</div>
 
 <script>
-(function() {
-    var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame ||
-    function(callback) {
-        window.setTimeout(callback, 1000 / 60);
-    };
-    window.requestAnimationFrame = requestAnimationFrame;
-})();
+// The following is the script to use JS with the YouTube API via google, hence the numbered steps. //
+// 2. This code loads the IFrame Player API code asynchronously.
+    var tag = document.createElement('script');
 
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-var flakes = [],
-    canvas = document.getElementById("canvas"),
-    ctx = canvas.getContext("2d"),
-    flakeCount = 400,
-    mX = -100,
-    mY = -100
+// 3. This function creates an <iframe> (and YouTube player) after the API code downloads.
+// This is only used for audio, so height and width are 0
+    function onYouTubeIframeAPIReady() {
+        var rand_index = Math.floor((Math.random() * 7) + 1)
+        var player = new YT.Player("player", {
+            height: '0',
+            width: '0',
+            playerVars: {
+                listType:'playlist',
+                list:'PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer',
+                index: rand_index,
+                autoplay: 1,
+            },
+            events: {
+                'onReady': function (event) {
+                    setTimeout(function() {
+                        event.target.setShuffle({'shufflePlaylist' : true});
+                    }, 1000);
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+                    var playButton = document.getElementById("play_button");
+                    playButton.addEventListener("click", function() {
+                        player.playVideo();
+                    });
 
-function snow() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (var i = 0; i < flakeCount; i++) {
-        var flake = flakes[i],
-            x = mX,
-            y = mY,
-            minDist = 150,
-            x2 = flake.x,
-            y2 = flake.y;
-
-        var dist = Math.sqrt((x2 - x) * (x2 - x) + (y2 - y) * (y2 - y)),
-            dx = x2 - x,
-            dy = y2 - y;
-
-        if (dist < minDist) {
-            var force = minDist / (dist * dist),
-                xcomp = (x - x2) / dist,
-                ycomp = (y - y2) / dist,
-                deltaV = force / 2;
-
-            flake.velX -= deltaV * xcomp;
-            flake.velY -= deltaV * ycomp;
-
-        } else {
-            flake.velX *= .98;
-            if (flake.velY <= flake.speed) {
-                flake.velY = flake.speed
+                    var pauseButton = document.getElementById("pause_button");
+                    pauseButton.addEventListener("click", function() {
+                        player.pauseVideo();
+                    });
+                }
             }
-            flake.velX += Math.cos(flake.step += .05) * flake.stepSize;
-        }
-
-        ctx.fillStyle = "rgba(255,255,255," + flake.opacity + ")";
-        flake.y += flake.velY;
-        flake.x += flake.velX;
-
-        if (flake.y >= canvas.height || flake.y <= 0) {
-            reset(flake);
-        }
-
-
-        if (flake.x >= canvas.width || flake.x <= 0) {
-            reset(flake);
-        }
-
-        ctx.beginPath();
-        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    requestAnimationFrame(snow);
-};
-
-function reset(flake) {
-    flake.x = Math.floor(Math.random() * canvas.width);
-    flake.y = 0;
-    flake.size = (Math.random() * 3) + 2;
-    flake.speed = (Math.random() * 1) + 0.5;
-    flake.velY = flake.speed;
-    flake.velX = 0;
-    flake.opacity = (Math.random() * 0.5) + 0.3;
-}
-
-function init() {
-    for (var i = 0; i < flakeCount; i++) {
-        var x = Math.floor(Math.random() * canvas.width),
-            y = Math.floor(Math.random() * canvas.height),
-            size = (Math.random() * 3) + 2,
-            speed = (Math.random() * 1) + 0.5,
-            opacity = (Math.random() * 0.5) + 0.3;
-
-        flakes.push({
-            speed: speed,
-            velY: speed,
-            velX: 0,
-            x: x,
-            y: y,
-            size: size,
-            stepSize: (Math.random()) / 30,
-            step: 0,
-            opacity: opacity
         });
     }
 
-    snow();
-};
-
-canvas.addEventListener("mousemove", function(e) {
-    mX = e.clientX,
-    mY = e.clientY
-});
-
-window.addEventListener("resize",function(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-})
-
-init();
 </script>
 {% endblock content %}
