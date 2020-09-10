@@ -6,9 +6,13 @@
     <div class="flex_center content_box">
         <div id="player"></div>
 
-        <!-- These buttons will be used across the different weather pages and has the JS housed in the base.html -->
-        <button class="btn btn-primary" id="play_button" style="display: none;"><i class="fas fa-play"></i></button>
-        <button class="btn btn-primary" id="pause_button" ><i class="fas fa-pause"></i></button>
+        <div class="text-center">
+            <!-- These buttons will be used across the different weather pages and has the JS housed in the base.html -->
+            <button class="btn btn-primary vid_button" id="play_button" style="display: none;"><i class="fas fa-play"></i></button>
+            <button class="btn btn-warning vid_button" id="pause_button"><i class="fas fa-pause"></i></button>
+
+            <p id="title" style="display: block; background: white;"></p>
+        </div>
     </div>
 </div>
 
@@ -33,12 +37,15 @@
                 list:'PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer',
                 index: rand_index,
                 autoplay: 1,
+                loop: 1,
             },
             events: {
                 'onReady': function (event) {
                     setTimeout(function() {
                         event.target.setShuffle({'shufflePlaylist' : true});
                     }, 1000);
+
+                    document.getElementById("title").innerText = player.getVideoData().title;
 
                     var playButton = document.getElementById("play_button");
                     playButton.addEventListener("click", function() {
@@ -49,6 +56,12 @@
                     pauseButton.addEventListener("click", function() {
                         player.pauseVideo();
                     });
+                },
+
+                'onStateChange': function (event) {
+                    if (event.data == YT.PlayerState.ENDED) {
+                        document.getElementById("title").innerText = player.getVideoData().title;
+                    }
                 }
             }
         });

@@ -39,7 +39,8 @@ def index():
             # Used Google's geocoding API, which takes the user zip code input and outputs the lat/long of that location
             google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
             user_zip = request.form["user_zip"]
-            zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip + "&key=" + google_api_key
+            zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip + "&key="\
+                                  + google_api_key
             #print(zip_code_coords_url)
 
             coords_data = requests.get(zip_code_coords_url)  # API request
@@ -118,28 +119,58 @@ def index():
         return render_template("index.html")
 
 
+def get_playlist_titles(playlist_id):
+    google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
+    rain_playlist_url = requests.get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50"
+                                        "&playlistId=" + playlist_id + "&fields=items%2Fsnippet(title)"
+                                        "&key=" + google_api_key)
+    rain_playlist_json = rain_playlist_url.json()
+    list_length = len(rain_playlist_json["items"])
+    #print(list_length)
+    song_title_list = []
+    for i in range(0, list_length):
+        rain_playlist_title = rain_playlist_json["items"][i]["snippet"]["title"]
+        song_title_list.append(rain_playlist_title)
+    return song_title_list
+
+
 @app.route("/Cloud")
 def cloud():
+    playlist_id = "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch"
+    song_title_list = get_playlist_titles(playlist_id)
+    print(song_title_list)
     return render_template("cloud.html")
 
 
 @app.route("/Sun")
 def sun():
+    playlist_id = "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT"
+    song_title_list = get_playlist_titles(playlist_id)
+    print(song_title_list)
     return render_template("sun.html")
 
 
 @app.route("/Rain")
 def rain():
+    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
+    song_title_list = get_playlist_titles(playlist_id)
+    print(song_title_list)
     return render_template("rain.html")
 
 
 @app.route("/Snow")
 def snow():
+    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
+    song_title_list = get_playlist_titles(playlist_id)
+    print(song_title_list)
     return render_template("snow.html")
 
 
 @app.route("/Storm")
 def storm():
+    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
+    song_title_list = get_playlist_titles(playlist_id)
+    print(song_title_list)
     return render_template("storm.html")
 
 

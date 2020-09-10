@@ -95,13 +95,8 @@ h2 {
     padding: 0px;
 }
 
-canvas {
-    background: url(/static/images/pexels-snow.jpg);
-    background-position: center center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    border: 25px solid white;
-    border-top: 0;
-    background-color: gray;
-    position: absolute;
+.vid_button {
+    height: 50px;
+    width: 50px;
+    margin: auto;
 }
