@@ -4,15 +4,38 @@
 {% block content %}
 <div class="flex_center full_space" id="rain_frame">
     <div class="flex_center content_box">
+        <!-- This div will fill with the YouTube "iframe" player -->
         <div id="player"></div>
 
+        <h1><img src="{{ current_icon_url }}" width="60" height="60">
+            <a href="{{ nws_website }}" target="_blank">
+                {{ current_conditions }}, {{ current_temp_F }}&#730F
+            </a>
+        </h1>
+
+        <hr style="border:solid 1px black; display: block; width: 90%;">
+
         <!-- These buttons will be used across the different weather pages and has the JS housed in the base.html -->
-        <button class="btn btn-primary vid_button" id="play_button" style="display: none;">
+        <button class="btn btn-primary vid_button long_button" id="play_button" style="display: none;">
             <i class="fas fa-play"></i>
         </button>
-        <button class="btn btn-warning vid_button" id="pause_button"><i class="fas fa-pause"></i></button>
+        <button class="btn btn-warning vid_button long_button" id="pause_button">
+            <i class="fas fa-pause"></i>
+        </button>
 
         <p id="title" class="song_title_p"></p>
+        <form method="POST" action="/Cloud">
+            <input type="hidden" id="save_song" name="save_song" value="">
+            <div class="btn-group" role="group">
+                <button type="submit" class="btn btn-dark small_button" title="Save Song">
+                    <i class="fas fa-save"></i>
+                </button>
+                <a type="button" id="song_link" class="btn btn-danger small_button" href="" target="_blank"
+                   title="Link to Song">
+                    <i class="fab fa-youtube"></i>
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -46,6 +69,9 @@
                     }, 1000);
 
                     document.getElementById("title").innerText = player.getVideoData().title;
+                    document.getElementById("save_song").value = player.getVideoData().title;
+                    document.getElementById("song_link").href = player.getVideoUrl();
+                    player.setVolume(50);
 
                     var playButton = document.getElementById("play_button");
                     playButton.addEventListener("click", function() {

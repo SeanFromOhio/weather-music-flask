@@ -1,6 +1,7 @@
-from flask import Flask, render_template, url_for, request, redirect
+from flask import Flask, render_template, url_for, request, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 import flask
+import flask_login
 import requests
 from forms import SignupForm, LoginForm
 from flask_login import logout_user, LoginManager, UserMixin, login_user, login_required
@@ -63,7 +64,12 @@ def index():
 
         # Next, read the JSON data and access key/value pair that houses our specific weather station data
         station_data = requests.get(NWS_stations_url)  # requests library not to be mistaken for flask-request
-        station_data_json = station_data.json()  # Houses our needed data
+        try:
+            station_data_json = station_data.json()  # Houses our needed data
+        except:
+            flask.flash("The National Weather Service API is currently down, meaning no weather data."
+                        " It will be back up soon!")
+            return render_template("index.html")
 
         # Access the json data and grabs the needed url with the necessary page added on
         wx_observ_url = station_data_json["features"][0]["id"] + "/observations/latest"
@@ -74,13 +80,12 @@ def index():
         # NWS API goes down from time to time, so let's catch that error:
         try:
             wx_data_json = wx_data.json()
-
         except:
             flask.flash("The Weather API is currently down, meaning no weather data. It will be back up soon!")
             return render_template("index.html")
 
         # Grab the specific weather text description, could be multiple elements.
-        # Check if presentWeather has data, if not it implies there's no precipitation occuring, therefore it's
+        # Check if presentWeather has data, if not it implies there's no precipitation occurring, therefore it's
         # sunny or cloudy. Thus, we utilize textDescription is order to determine which.
         present_weather_len = len(wx_data_json["properties"]["presentWeather"])
         if present_weather_len > 0:
@@ -90,30 +95,52 @@ def index():
 
         # The filters are needed as similar conditions have different names. The rawStrings are an easy
         # identifier for the type of precipitation or weather effect (Thunderstorms...)
-        sun_words_filter = re.compile(r'\b(Sun|Clear|Fair|FG)\b').search
-        cloud_words_filter = re.compile(r'\b(Clouds|Cloudy)\b').search
+        sun_words_filter = re.compile(r'\b(Sun|Clear|Fair)\b').search
+        cloud_words_filter = re.compile(r'\b(Clouds|Cloudy|FG)\b').search
         rain_rawstring_filter = re.compile(r'\b(RA|BR|DZ|SH)\b').search
         storm_rawstring_filter = re.compile(r'\b(TS|FC|GR|)\b').search
         snow_rawstring_filter = re.compile(r'\b(SN|SW|SP|SG|S|FZRA|SNINCR)\b').search
 
-        # Conditionals utilizing regular expressions to hunt for a word match from the NWS datam which then
+        # Lastly, the weather information is needed to be passed into the following pages accordingly.
+        # Current temperature:
+        current_temp_C = wx_data_json["properties"]["temperature"]["value"]
+        current_temp_F = round((current_temp_C * (9 / 5)) + 32)  # Convert to fahrenheit
+        # Weather description:
+        current_conditions = wx_data_json["properties"]["textDescription"]
+        # Weather icon:
+        current_icon_url = wx_data_json["properties"]["icon"]
+
+        # Lat / Long to hyperlink to NWS website for specific location:
+        lat = round(wx_data_json["geometry"]["coordinates"][1], 2)
+        long = round(wx_data_json["geometry"]["coordinates"][0], 2)
+        nws_website = ("https://forecast.weather.gov/MapClick.php?textField1=" + str(lat) + "&textField2=" + str(long))
+        print(nws_website)
+
+        session["current_temp_F"] = current_temp_F
+
+
+        # Conditionals utilizing regular expressions to hunt for a word match from the NWS data which then
         # redirects to the appropriate page.
         if cloud_words_filter(wx_text_description):
             print("Cloud")
-            return redirect("Cloud")
+            return render_template("cloud.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+                                   current_icon_url=current_icon_url, nws_website=nws_website)
         elif sun_words_filter(wx_text_description):
             print("Sun")
-            return redirect("Sun")
+            return render_template("sun.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+                                   current_icon_url=current_icon_url)
         elif snow_rawstring_filter(wx_text_description):
             print("Snow")
-            return redirect("Snow")
+            return render_template("snow.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+                                   current_icon_url=current_icon_url)
         elif rain_rawstring_filter(wx_text_description):
             print("Rain")
-            return redirect("Rain")
+            return render_template("rain.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+                                   current_icon_url=current_icon_url)
         elif storm_rawstring_filter(wx_text_description):
             print("Storm")
-            return redirect("Storm")
-
+            return render_template("storm.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+                                   current_icon_url=current_icon_url)
         return render_template("index.html")
     else:
         return render_template("index.html")
@@ -135,42 +162,53 @@ def get_playlist_titles(playlist_id):
     return song_title_list
 
 
-@app.route("/Cloud")
+@app.route("/Cloud", methods=["POST", "GET"])
 def cloud():
     playlist_id = "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch"
     #song_title_list = get_playlist_titles(playlist_id)
-    return render_template("cloud.html")
+    print(session["current_temp_F"])
+
+    if request.method == "POST":
+        song_name = request.form["save_song"]
+        user = flask_login.current_user
+        print(song_name, user)
+        save_song = SongList(song=song_name, user=user)
+        db.session.add(save_song)
+        db.session.commit()
+        return redirect("Cloud")
+    else:
+        return render_template("cloud.html")
 
 
-@app.route("/Sun")
+@app.route("/Sun", methods=["POST", "GET"])
 def sun():
     playlist_id = "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT"
     #song_title_list = get_playlist_titles(playlist_id)
     return render_template("sun.html")
 
 
-@app.route("/Rain")
+@app.route("/Rain", methods=["POST", "GET"])
 def rain():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
     #song_title_list = get_playlist_titles(playlist_id)
     return render_template("rain.html")
 
 
-@app.route("/Snow")
+@app.route("/Snow", methods=["POST", "GET"])
 def snow():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
     #song_title_list = get_playlist_titles(playlist_id)
     return render_template("snow.html")
 
 
-@app.route("/Storm")
+@app.route("/Storm", methods=["POST", "GET"])
 def storm():
     playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
     #song_title_list = get_playlist_titles(playlist_id)
     return render_template("storm.html")
 
 
-@app.route("/Profile")
+@app.route("/Profile", methods=["POST", "GET"])
 @login_required
 def profile():
     return render_template("profile.html")
@@ -189,7 +227,8 @@ def signup():
             db.session.commit()
             return redirect("/")
         except:
-            return "There was an issue creating your account. Try a different username."
+            flask.flash("There was an issue creating your account. Try a different username.")
+            return redirect("signup")
 
     else:
         return render_template("authentication/signup.html", form=form)
@@ -231,5 +270,20 @@ class User(db.Model, UserMixin):
         return self.username
 
 
+# User Song Model ------------------------
+
+class SongList(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    song = db.Column(db.String, unique=True, nullable=False)
+    user = db.Column(db.String, db.ForeignKey("user.id"))
+    date_created = db.Column(db.DateTime, default=datetime.utcnow())
+
+    def __repr__(self):
+        return f"{self.user} - {self.song}"
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
+
+
+
