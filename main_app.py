@@ -209,31 +209,31 @@ def save_song():
 
 
 # These routes will be be another option to listen to the playlists, without location or weather being determined.
-@app.route("/Cloud", methods=["POST", "GET"])
+@app.route("/Cloud")
 def cloud():
-    return render_template("cloud.html")
+    return render_template("basic_playlist/only_cloud_playlist.html")
 
 
-@app.route("/Sun", methods=["POST", "GET"])
+@app.route("/Sun")
 def sun():
     song_list = SongList.query.all()
     print(song_list)
-    return render_template("sun.html")
+    return render_template("basic_playlist/only_sun_playlist.html")
 
 
-@app.route("/Rain", methods=["POST", "GET"])
+@app.route("/Rain")
 def rain():
     return render_template("basic_playlist/only_rain_playlist.html")
 
 
-@app.route("/Snow", methods=["POST", "GET"])
+@app.route("/Snow")
 def snow():
-    return render_template("snow.html")
+    return render_template("basic_playlist/only_snow_playlist.html")
 
 
-@app.route("/Storm", methods=["POST", "GET"])
+@app.route("/Storm")
 def storm():
-    return render_template("storm.html")
+    return render_template("basic_playlist/only_storm_playlist.html")
 
 
 @app.route("/Profile", methods=["POST", "GET"])
