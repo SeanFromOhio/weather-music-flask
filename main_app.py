@@ -10,7 +10,7 @@ import re
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///WxMusic.db"
-app.config["SECRET_KEY"] = "s3cr3tk3y"
+app.config["SECRET_KEY"] = "s3cr3tk3ys3cr3tk3ys3cr3tk3ys3cr3tk3ys3cr3tk3y"
 db = SQLAlchemy(app)
 
 login_manager = LoginManager()
@@ -21,6 +21,30 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
+
+
+# User Model -----------------------------
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(30), unique=True, nullable=False)
+    password = db.Column(db.String(30), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+    songs = db.relationship("SongList", backref="author", lazy=True)
+
+    def __repr__(self):
+        return f"Username: '{self.username}'({self.id}) - Account Created: '{self.date_created}"
+
+
+# User Song Model ------------------------
+class SongList(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    song_name = db.Column(db.String, unique=True, nullable=False)
+    song_url = db.Column(db.String, unique=True, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    date_created = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"{self.user_id} - {self.song_name}"
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -96,7 +120,7 @@ def index():
         # The filters are needed as similar conditions have different names. The rawStrings are an easy
         # identifier for the type of precipitation or weather effect (Thunderstorms...)
         sun_words_filter = re.compile(r'\b(Sun|Clear|Fair)\b').search
-        cloud_words_filter = re.compile(r'\b(Clouds|Cloudy|FG)\b').search
+        cloud_words_filter = re.compile(r'\b(Clouds|Cloudy|FG|HZ)\b').search
         rain_rawstring_filter = re.compile(r'\b(RA|BR|DZ|SH)\b').search
         storm_rawstring_filter = re.compile(r'\b(TS|FC|GR|)\b').search
         snow_rawstring_filter = re.compile(r'\b(SN|SW|SP|SG|S|FZRA|SNINCR)\b').search
@@ -116,30 +140,27 @@ def index():
         nws_website = ("https://forecast.weather.gov/MapClick.php?textField1=" + str(lat) + "&textField2=" + str(long))
         print(nws_website)
 
-        session["current_temp_F"] = current_temp_F
-
-
         # Conditionals utilizing regular expressions to hunt for a word match from the NWS data which then
         # redirects to the appropriate page.
         if cloud_words_filter(wx_text_description):
             print("Cloud")
-            return render_template("cloud.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+            return render_template("weather_playlist/cloud.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
                                    current_icon_url=current_icon_url, nws_website=nws_website)
         elif sun_words_filter(wx_text_description):
             print("Sun")
-            return render_template("sun.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+            return render_template("weather_playlist/sun.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
                                    current_icon_url=current_icon_url)
         elif snow_rawstring_filter(wx_text_description):
             print("Snow")
-            return render_template("snow.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+            return render_template("weather_playlist/snow.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
                                    current_icon_url=current_icon_url)
         elif rain_rawstring_filter(wx_text_description):
             print("Rain")
-            return render_template("rain.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+            return render_template("weather_playlist/rain.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
                                    current_icon_url=current_icon_url)
         elif storm_rawstring_filter(wx_text_description):
             print("Storm")
-            return render_template("storm.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
+            return render_template("weather_playlist/storm.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
                                    current_icon_url=current_icon_url)
         return render_template("index.html")
     else:
@@ -162,49 +183,56 @@ def get_playlist_titles(playlist_id):
     return song_title_list
 
 
-@app.route("/Cloud", methods=["POST", "GET"])
-def cloud():
-    playlist_id = "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch"
-    #song_title_list = get_playlist_titles(playlist_id)
-    print(session["current_temp_F"])
+# Playlist IDs for the various Wx types:
+playlist_ids = {
+    "cloud": "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch",
+    "sun": "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT",
+    "rain": "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer",
+    "snow": "CREATE",
+    "storm": "CREATE",
+}
 
+
+@app.route("/save_song", methods=["POST", "GET"])
+def save_song():
     if request.method == "POST":
         song_name = request.form["save_song"]
-        user = flask_login.current_user
-        print(song_name, user)
-        save_song = SongList(song=song_name, user=user)
-        db.session.add(save_song)
+        song_url = request.form["save_url"]
+        user = flask_login.current_user.get_id()
+        print(song_name, song_url, user)
+        song_info = SongList(song_name=song_name, song_url=song_url, user_id=user)
+        db.session.add(song_info)
         db.session.commit()
-        return redirect("Cloud")
+        return redirect("/Sun")
     else:
-        return render_template("cloud.html")
+        return redirect("/")
+
+
+# These routes will be be another option to listen to the playlists, without location or weather being determined.
+@app.route("/Cloud", methods=["POST", "GET"])
+def cloud():
+    return render_template("cloud.html")
 
 
 @app.route("/Sun", methods=["POST", "GET"])
 def sun():
-    playlist_id = "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT"
-    #song_title_list = get_playlist_titles(playlist_id)
+    song_list = SongList.query.all()
+    print(song_list)
     return render_template("sun.html")
 
 
 @app.route("/Rain", methods=["POST", "GET"])
 def rain():
-    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    #song_title_list = get_playlist_titles(playlist_id)
-    return render_template("rain.html")
+    return render_template("basic_playlist/only_rain_playlist.html")
 
 
 @app.route("/Snow", methods=["POST", "GET"])
 def snow():
-    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("snow.html")
 
 
 @app.route("/Storm", methods=["POST", "GET"])
 def storm():
-    playlist_id = "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer"
-    #song_title_list = get_playlist_titles(playlist_id)
     return render_template("storm.html")
 
 
@@ -258,32 +286,5 @@ def logout():
     return render_template("authentication/logout.html")
 
 
-# User Model -----------------------------
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), unique=True, nullable=False)
-    password = db.Column(db.String(30), nullable=False)
-    date_created = db.Column(db.DateTime, default=datetime.utcnow())
-
-    def __repr__(self):
-        return self.username
-
-
-# User Song Model ------------------------
-
-class SongList(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    song = db.Column(db.String, unique=True, nullable=False)
-    user = db.Column(db.String, db.ForeignKey("user.id"))
-    date_created = db.Column(db.DateTime, default=datetime.utcnow())
-
-    def __repr__(self):
-        return f"{self.user} - {self.song}"
-
-
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
-
-
-

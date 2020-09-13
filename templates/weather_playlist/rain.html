@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %} WxMusic | Snowing {% endblock title %}
+{% block title %} WxMusic | Raining {% endblock title %}
 
 {% block content %}
-<div class="flex_center full_space" id="snow_frame">
-    <div class="flex_center content_box" style="position: relative;">
+<div class="flex_center full_space" id="rain_frame">
+    <div class="flex_center content_box">
         <!-- This div will fill with the YouTube "iframe" player -->
         <div id="player"></div>
 
@@ -24,12 +24,20 @@
         </button>
 
         <p id="title" class="song_title_p"></p>
-        <form method="POST" action="/Cloud">
+        <form method="POST" action="/save_song">
             <input type="hidden" id="save_song" name="save_song" value="">
+            <input type="hidden" id="save_url" name="save_url" value="">
             <div class="btn-group" role="group">
-                <button type="submit" class="btn btn-dark small_button" title="Save Song">
-                    <i class="fas fa-save"></i>
-                </button>
+                {% if current_user.is_authenticated %}
+                    <button type="submit" class="btn btn-dark small_button" title="Save Song">
+                        <i class="fas fa-save"></i>
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-dark small_button" data-container="body" data-toggle="popover"
+                            data-placement="left" data-content="<a href='/signup'>Signup</a> to save songs!">
+                        <i class="fas fa-save"></i>
+                    </button>
+                {% endif %}
                 <a type="button" id="song_link" class="btn btn-danger small_button" href="" target="_blank"
                    title="Link to Song">
                     <i class="fab fa-youtube"></i>
@@ -87,6 +95,9 @@
                 'onStateChange': function (event) {
                     if (event.data == YT.PlayerState.ENDED) {
                         document.getElementById("title").innerText = player.getVideoData().title;
+                        document.getElementById("save_song").value = player.getVideoData().title;
+                        document.getElementById("save_url").value = player.getVideoUrl();
+                        document.getElementById("song_link").href = player.getVideoUrl();
                     }
                 }
             }
