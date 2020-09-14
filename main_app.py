@@ -138,7 +138,7 @@ def index():
         lat = round(wx_data_json["geometry"]["coordinates"][1], 2)
         long = round(wx_data_json["geometry"]["coordinates"][0], 2)
         nws_website = ("https://forecast.weather.gov/MapClick.php?textField1=" + str(lat) + "&textField2=" + str(long))
-        print(nws_website)
+        #print(nws_website)
 
         # Conditionals utilizing regular expressions to hunt for a word match from the NWS data which then
         # redirects to the appropriate page.
@@ -149,19 +149,19 @@ def index():
         elif sun_words_filter(wx_text_description):
             print("Sun")
             return render_template("weather_playlist/sun.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url)
+                                   current_icon_url=current_icon_url, nws_website=nws_website)
         elif snow_rawstring_filter(wx_text_description):
             print("Snow")
             return render_template("weather_playlist/snow.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url)
+                                   current_icon_url=current_icon_url, nws_website=nws_website)
         elif rain_rawstring_filter(wx_text_description):
             print("Rain")
             return render_template("weather_playlist/rain.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url)
+                                   current_icon_url=current_icon_url, nws_website=nws_website)
         elif storm_rawstring_filter(wx_text_description):
             print("Storm")
             return render_template("weather_playlist/storm.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url)
+                                   current_icon_url=current_icon_url, nws_website=nws_website)
         return render_template("index.html")
     else:
         return render_template("index.html")
