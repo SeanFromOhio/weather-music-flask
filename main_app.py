@@ -58,15 +58,15 @@ def index():
             user_lat = request.form["hidden_lat"]
             user_long = request.form["hidden_long"]
             user_coords = user_lat + "," + user_long
-            #print(user_coords)
+            print(user_coords)
 
         else:
             # Used Google's geocoding API, which takes the user zip code input and outputs the lat/long of that location
             google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
             user_zip = request.form["user_zip"]
-            zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip + "&key="\
-                                  + google_api_key
-            #print(zip_code_coords_url)
+            zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip \
+                                  + "%20USA&key=" + google_api_key
+            print(zip_code_coords_url)
 
             coords_data = requests.get(zip_code_coords_url)  # API request
             coords_data_json = coords_data.json()  # Necessary to access the data as a dictionary (json...)
@@ -84,7 +84,7 @@ def index():
         # User user coordinates to access National Weather Service (NWS) API
         # First, must find closest weather observation station using the following url:
         NWS_stations_url = ("https://api.weather.gov/points/" + user_coords + "/stations")
-        #print(NWS_stations_url)
+        print(NWS_stations_url)
 
         # Next, read the JSON data and access key/value pair that houses our specific weather station data
         station_data = requests.get(NWS_stations_url)  # requests library not to be mistaken for flask-request
@@ -239,7 +239,19 @@ def storm():
 @app.route("/Profile", methods=["POST", "GET"])
 @login_required
 def profile():
-    return render_template("profile.html")
+    current_user_name = flask_login.current_user.username
+    current_user_id = flask_login.current_user.get_id()
+    user_songs = SongList.query.filter_by(user_id=current_user_id).all()
+
+    if request.method == "POST":
+        song_id = request.form["song_id"]
+        print(song_id)
+        delete_song = SongList.query.filter_by(user_id=current_user_id, id=song_id).first()
+        db.session.delete(delete_song)
+        db.session.commit()
+        return redirect("Profile")
+    else:
+        return render_template("profile.html", current_user_name=current_user_name, user_songs=user_songs)
 
 
 @app.route("/signup", methods=["POST", "GET"])

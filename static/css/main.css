@@ -120,3 +120,7 @@ h2 {
     height: 40px;
     width: 200px;
 }
+
+.block {
+    display: block;
+}
