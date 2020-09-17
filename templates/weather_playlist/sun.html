@@ -7,6 +7,7 @@
         <!-- This div will fill with the YouTube "iframe" player -->
         <div id="player"></div>
 
+        <!-- header to show current weather observations -->
         <h1 class="text-center"><img src="{{ current_icon_url }}" width="60" height="60">
             <a href="{{ nws_website }}" target="_blank">
                 {{ current_conditions }}, {{ current_temp_F }}&#730F
@@ -24,10 +25,13 @@
         </button>
 
         <p id="title" class="song_title_p"></p>
+
+        <!-- Hidden form to make a save song request -->
         <form id="save_song_form">
             <input type="hidden" id="save_song" name="save_song" value="">
             <input type="hidden" id="save_url" name="save_url" value="">
             <div class="btn-group" role="group">
+                <!-- Check if the user is authenticated and changes the save song button depending -->
                 {% if current_user.is_authenticated %}
                     <button type="submit" class="btn btn-dark small_button" id="save_button" title="Save Song">
                         <i class="fas fa-save"></i>

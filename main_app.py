@@ -8,16 +8,19 @@ from flask_login import logout_user, LoginManager, UserMixin, login_user, login_
 from datetime import datetime
 import re
 
+# Initialize the db with SQLAlchemy
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///WxMusic.db"
 app.config["SECRET_KEY"] = "s3cr3tk3ys3cr3tk3ys3cr3tk3ys3cr3tk3ys3cr3tk3y"
 db = SQLAlchemy(app)
 
+# Flask login management system
 login_manager = LoginManager()
 login_manager.login_view = "/login"
 login_manager.init_app(app)
 
 
+# Creating the user current_user object
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
@@ -47,6 +50,7 @@ class SongList(db.Model):
         return f"{self.user_id} - {self.song_name}"
 
 
+# Main processing and landing page
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == "POST":
@@ -150,7 +154,7 @@ def index():
         #print(nws_website)
 
         # Conditionals utilizing regular expressions to hunt for a word match from the NWS data which then
-        # redirects to the appropriate page.
+        # redirects to the appropriate page. Template comments/explanation can be found under the sun.html template.
         if cloud_words_filter(wx_text_description):
             print("Cloud")
             return render_template("weather_playlist/cloud.html", current_temp_F=current_temp_F,
@@ -202,11 +206,12 @@ playlist_ids = {
     "cloud": "PLyfbZoo34M08uXIE3QNSjudDvcJGIOSch",
     "sun": "PLyfbZoo34M09Nwe1TVaikLWuvUk7-8TCT",
     "rain": "PLyfbZoo34M08Xc3bbWIEN8tGnMTVkmjer",
-    "snow": "CREATE",
-    "storm": "CREATE",
+    "snow": "PLyfbZoo34M09fAKIDbgJFUdiV8cfWG78f",
+    "storm": "PLyfbZoo34M0_q-Ru5PayQit1vZbLahdNk",
 }
 
 
+# Processes the user save song request
 @app.route("/save_song", methods=["POST"])
 def save_song():
     if request.method == "POST":
