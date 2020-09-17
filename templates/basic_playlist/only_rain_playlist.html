@@ -20,12 +20,12 @@
         </button>
 
         <p id="title" class="song_title_p"></p>
-        <form method="POST" action="/save_song">
+        <form id="save_song_form">
             <input type="hidden" id="save_song" name="save_song" value="">
             <input type="hidden" id="save_url" name="save_url" value="">
             <div class="btn-group" role="group">
                 {% if current_user.is_authenticated %}
-                    <button type="submit" class="btn btn-dark small_button" title="Save Song">
+                    <button type="submit" class="btn btn-dark small_button" id="save_button" title="Save Song">
                         <i class="fas fa-save"></i>
                     </button>
                 {% else %}
@@ -74,6 +74,7 @@
 
                     document.getElementById("title").innerText = player.getVideoData().title;
                     document.getElementById("save_song").value = player.getVideoData().title;
+                    document.getElementById("save_url").value = player.getVideoUrl();
                     document.getElementById("song_link").href = player.getVideoUrl();
                     player.setVolume(50);
 
@@ -94,6 +95,7 @@
                         document.getElementById("save_song").value = player.getVideoData().title;
                         document.getElementById("save_url").value = player.getVideoUrl();
                         document.getElementById("song_link").href = player.getVideoUrl();
+                        document.getElementById("save_button").innerHTML = '<i class="fas fa-save"></i>';
                     }
                 }
             }
