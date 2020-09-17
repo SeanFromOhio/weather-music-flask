@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, session
+from flask import Flask, render_template, url_for, request, redirect, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import flask
 import flask_login
@@ -58,7 +58,7 @@ def index():
             user_lat = request.form["hidden_lat"]
             user_long = request.form["hidden_long"]
             user_coords = user_lat + "," + user_long
-            print(user_coords)
+            #print(user_coords)
 
         else:
             # Used Google's geocoding API, which takes the user zip code input and outputs the lat/long of that location
@@ -66,7 +66,7 @@ def index():
             user_zip = request.form["user_zip"]
             zip_code_coords_url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + user_zip \
                                   + "%20USA&key=" + google_api_key
-            print(zip_code_coords_url)
+            #print(zip_code_coords_url)
 
             coords_data = requests.get(zip_code_coords_url)  # API request
             coords_data_json = coords_data.json()  # Necessary to access the data as a dictionary (json...)
@@ -74,6 +74,10 @@ def index():
             # Checks if the user entered a valid zip code, if not it tells the user to try again.
             if coords_data_json["status"] == "ZERO_RESULTS":
                 flask.flash('That is not a valid Zip Code (US), please try again!')
+                return render_template("index.html")
+
+            elif coords_data_json["results"][0]["address_components"][-1]["short_name"] != "US":
+                flask.flash('Currently only US Zip Codes are allowed, please try again!')
                 return render_template("index.html")
 
             else:
@@ -84,7 +88,7 @@ def index():
         # User user coordinates to access National Weather Service (NWS) API
         # First, must find closest weather observation station using the following url:
         NWS_stations_url = ("https://api.weather.gov/points/" + user_coords + "/stations")
-        print(NWS_stations_url)
+        #print(NWS_stations_url)
 
         # Next, read the JSON data and access key/value pair that houses our specific weather station data
         station_data = requests.get(NWS_stations_url)  # requests library not to be mistaken for flask-request
@@ -97,7 +101,7 @@ def index():
 
         # Access the json data and grabs the needed url with the necessary page added on
         wx_observ_url = station_data_json["features"][0]["id"] + "/observations/latest"
-        print(wx_observ_url)
+        #print(wx_observ_url)
 
         # Now we have all the wx data from the closest observation station
         wx_data = requests.get(wx_observ_url)
@@ -193,17 +197,36 @@ playlist_ids = {
 }
 
 
-@app.route("/save_song", methods=["POST", "GET"])
+@app.route("/save_song", methods=["POST"])
 def save_song():
     if request.method == "POST":
         song_name = request.form["save_song"]
         song_url = request.form["save_url"]
         user = flask_login.current_user.get_id()
         print(song_name, song_url, user)
-        song_info = SongList(song_name=song_name, song_url=song_url, user_id=user)
-        db.session.add(song_info)
-        db.session.commit()
-        return redirect("/Sun")
+        if SongList.query.filter_by(user_id=user, song_name=song_name).all():
+            return jsonify({"song_status": "already saved"})
+        else:
+            song_info = SongList(song_name=song_name, song_url=song_url, user_id=user)
+            db.session.add(song_info)
+            db.session.commit()
+            return jsonify({"song_status": "saved"})
+
+    else:
+        return redirect("/")
+
+
+@app.route("/song_check", methods=["POST"])
+def song_check():
+    if request.method == "POST":
+        song_name = request.form["save_check"]
+        print("MAYBE?")
+        user = flask_login.current_user.get_id()
+        if SongList.query.filter_by(user_id=user, song_name=song_name).all():
+            return jsonify({"song_status": "already saved"})
+        else:
+            return jsonify({"song_status": "save"})
+
     else:
         return redirect("/")
 

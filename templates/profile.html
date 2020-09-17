@@ -21,7 +21,7 @@
                 <td>{{ song.song_name }}</td>
                 <td><a href="{{ song.song_url }}" target="_blank">YouTube Link</a></td>
                 <td class="text-center"><a type="button" href="#" id="delete_song_button" name="{{ song.id }}"
-                                           data-toggle="modal" data-target="#exampleModalCenter" onClick="roses({{ song.id }})">
+                                           data-toggle="modal" data-target="#exampleModalCenter" onClick="grab_id({{ song.id }})">
                     <i class="fas fa-minus-circle"></i>
                 </a></td>
             </tr>
@@ -34,7 +34,7 @@
             <div class="modal-dialog modal-dialog-centered" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="modal_check_title">Confirm Deletion of "<i id="song_name"></i>"</h5>
+                        <h5 class="modal-title" id="modal_check_title">Confirm Deletion</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -53,9 +53,8 @@
 </div>
 
 <script>
-    function roses(song_id) {
-        // document.getElementById("song_name").innerHTML = song_name
-        document.getElementById("song_id").value = song_id
+    function grab_id(song_id) {
+        document.getElementById("song_id").value = song_id;
     };
 </script>
 {% endblock content %}

@@ -63,9 +63,39 @@
             document.getElementById("pause_button").style.display = "none";
         });
 
-    $(function () {
-        $('[data-toggle="popover"]').popover({html:true})
-    })
+    // AJAX 'save song' on button click
+        document.getElementById("save_song_form").addEventListener("submit", save_song);
+
+        function save_song(event) {
+            event.preventDefault();
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/save_song", true);
+
+            xhr.onload = function() {
+                if (this.status == 200) {
+                    var success_message = JSON.parse(this.responseText)
+
+                    console.log("Success!");
+                    console.log(success_message["song_status"]);
+                    document.getElementById("save_button").innerHTML = '<i class="fas fa-check"></i>';
+
+                } else {
+                    console.log("Request failed!");
+                }
+            }
+
+            var data = new FormData();
+            data.append("save_song", document.getElementById("save_song").value);
+            data.append("save_url", document.getElementById("save_url").value);
+
+            xhr.send(data)
+        };
+
+    // Bootstrap to allow popovers globally
+        $(function () {
+            $('[data-toggle="popover"]').popover({html:true})
+        })
     </script>
 </body>
 </html>
