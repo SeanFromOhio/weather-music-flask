@@ -101,7 +101,7 @@ def index():
 
         # Access the json data and grabs the needed url with the necessary page added on
         wx_observ_url = station_data_json["features"][0]["id"] + "/observations/latest"
-        #print(wx_observ_url)
+        print(wx_observ_url)
 
         # Now we have all the wx data from the closest observation station
         wx_data = requests.get(wx_observ_url)
@@ -130,9 +130,14 @@ def index():
         snow_rawstring_filter = re.compile(r'\b(SN|SW|SP|SG|S|FZRA|SNINCR)\b').search
 
         # Lastly, the weather information is needed to be passed into the following pages accordingly.
-        # Current temperature:
-        current_temp_C = wx_data_json["properties"]["temperature"]["value"]
-        current_temp_F = round((current_temp_C * (9 / 5)) + 32)  # Convert to fahrenheit
+        # Current temperature (if there's a measured temperature...):
+        try:
+            current_temp_C = wx_data_json["properties"]["temperature"]["value"]
+            #print(current_temp_C)
+            current_temp_F = round((current_temp_C * (9 / 5)) + 32)  # Convert to fahrenheit
+        except:
+            current_temp_F = "Null "
+
         # Weather description:
         current_conditions = wx_data_json["properties"]["textDescription"]
         # Weather icon:
@@ -148,43 +153,48 @@ def index():
         # redirects to the appropriate page.
         if cloud_words_filter(wx_text_description):
             print("Cloud")
-            return render_template("weather_playlist/cloud.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url, nws_website=nws_website)
+            return render_template("weather_playlist/cloud.html", current_temp_F=current_temp_F,
+                                   current_conditions=current_conditions, current_icon_url=current_icon_url,
+                                   nws_website=nws_website)
         elif sun_words_filter(wx_text_description):
             print("Sun")
-            return render_template("weather_playlist/sun.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url, nws_website=nws_website)
+            return render_template("weather_playlist/sun.html", current_temp_F=current_temp_F,
+                                   current_conditions=current_conditions, current_icon_url=current_icon_url,
+                                   nws_website=nws_website)
         elif snow_rawstring_filter(wx_text_description):
             print("Snow")
-            return render_template("weather_playlist/snow.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url, nws_website=nws_website)
+            return render_template("weather_playlist/snow.html", current_temp_F=current_temp_F,
+                                   current_conditions=current_conditions, current_icon_url=current_icon_url,
+                                   nws_website=nws_website)
         elif rain_rawstring_filter(wx_text_description):
             print("Rain")
-            return render_template("weather_playlist/rain.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url, nws_website=nws_website)
+            return render_template("weather_playlist/rain.html", current_temp_F=current_temp_F,
+                                   current_conditions=current_conditions, current_icon_url=current_icon_url,
+                                   nws_website=nws_website)
         elif storm_rawstring_filter(wx_text_description):
             print("Storm")
-            return render_template("weather_playlist/storm.html", current_temp_F=current_temp_F, current_conditions=current_conditions,
-                                   current_icon_url=current_icon_url, nws_website=nws_website)
+            return render_template("weather_playlist/storm.html", current_temp_F=current_temp_F,
+                                   current_conditions=current_conditions, current_icon_url=current_icon_url,
+                                   nws_website=nws_website)
         return render_template("index.html")
     else:
         return render_template("index.html")
 
 
-# Using YouTube Data API to construct a list with all my songs from a specified playlist
-def get_playlist_titles(playlist_id):
-    google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
-    rain_playlist_url = requests.get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50"
-                                        "&playlistId=" + playlist_id + "&fields=items%2Fsnippet(title)"
-                                        "&key=" + google_api_key)
-    rain_playlist_json = rain_playlist_url.json()
-    list_length = len(rain_playlist_json["items"])
-    #print(list_length)
-    song_title_list = []
-    for i in range(0, list_length):
-        rain_playlist_title = rain_playlist_json["items"][i]["snippet"]["title"]
-        song_title_list.append(rain_playlist_title)
-    return song_title_list
+# Using YouTube Data API to construct a list with all my songs from a specified playlist - CURRENTLY NOT UTILIZED
+# def get_playlist_titles(playlist_id):
+#     google_api_key = "AIzaSyCx3Pf1CLsoxyE340va9l2TGKGB_lOeISM"  # MAKE SURE THIS IS HIDDEN WHEN IN PRODUCTION
+#     rain_playlist_url = requests.get("https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50"
+#                                         "&playlistId=" + playlist_id + "&fields=items%2Fsnippet(title)"
+#                                         "&key=" + google_api_key)
+#     rain_playlist_json = rain_playlist_url.json()
+#     list_length = len(rain_playlist_json["items"])
+#     #print(list_length)
+#     song_title_list = []
+#     for i in range(0, list_length):
+#         rain_playlist_title = rain_playlist_json["items"][i]["snippet"]["title"]
+#         song_title_list.append(rain_playlist_title)
+#     return song_title_list
 
 
 # Playlist IDs for the various Wx types:
@@ -201,11 +211,9 @@ playlist_ids = {
 def save_song():
     if request.method == "POST":
         song_name = request.form["save_song"]
-        print(type(song_name))
         song_url = request.form["save_url"]
         user = flask_login.current_user.get_id()
-        print(song_name, song_url, user)
-        print(bool(SongList.query.filter_by(user_id=user, song_name=song_name).all()))
+        #print(song_name, song_url, user)
         if SongList.query.filter_by(user_id=user, song_name=song_name).all():
             return jsonify({"song_status": "already saved"})
         else:
@@ -242,8 +250,6 @@ def cloud():
 
 @app.route("/Sun")
 def sun():
-    song_list = SongList.query.all()
-    print(song_list)
     return render_template("basic_playlist/only_sun_playlist.html")
 
 
