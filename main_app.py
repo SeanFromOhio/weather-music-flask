@@ -38,8 +38,8 @@ class User(db.Model, UserMixin):
 # User Song Model ------------------------
 class SongList(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    song_name = db.Column(db.String, unique=True, nullable=False)
-    song_url = db.Column(db.String, unique=True, nullable=False)
+    song_name = db.Column(db.String, unique=False, nullable=False)
+    song_url = db.Column(db.String, unique=False, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -201,9 +201,11 @@ playlist_ids = {
 def save_song():
     if request.method == "POST":
         song_name = request.form["save_song"]
+        print(type(song_name))
         song_url = request.form["save_url"]
         user = flask_login.current_user.get_id()
         print(song_name, song_url, user)
+        print(bool(SongList.query.filter_by(user_id=user, song_name=song_name).all()))
         if SongList.query.filter_by(user_id=user, song_name=song_name).all():
             return jsonify({"song_status": "already saved"})
         else:
@@ -216,19 +218,20 @@ def save_song():
         return redirect("/")
 
 
-@app.route("/song_check", methods=["POST"])
-def song_check():
-    if request.method == "POST":
-        song_name = request.form["save_check"]
-        print("MAYBE?")
-        user = flask_login.current_user.get_id()
-        if SongList.query.filter_by(user_id=user, song_name=song_name).all():
-            return jsonify({"song_status": "already saved"})
-        else:
-            return jsonify({"song_status": "save"})
-
-    else:
-        return redirect("/")
+# This app was to be used to check if the current playing song was already saved in the db.
+# @app.route("/song_check", methods=["POST"])
+# def song_check():
+#     if request.method == "POST":
+#         song_name = request.form["save_check"]
+#         print("MAYBE?")
+#         user = flask_login.current_user.get_id()
+#         if SongList.query.filter_by(user_id=user, song_name=song_name).all():
+#             return jsonify({"song_status": "already saved"})
+#         else:
+#             return jsonify({"song_status": "save"})
+#
+#     else:
+#         return redirect("/")
 
 
 # These routes will be be another option to listen to the playlists, without location or weather being determined.

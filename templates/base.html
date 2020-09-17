@@ -69,7 +69,7 @@
         function save_song(event) {
             event.preventDefault();
 
-            var xhr = new XMLHttpRequest();
+            const xhr = new XMLHttpRequest();
             xhr.open("POST", "/save_song", true);
 
             xhr.onload = function() {
@@ -85,7 +85,7 @@
                 }
             }
 
-            var data = new FormData();
+            const data = new FormData();
             data.append("save_song", document.getElementById("save_song").value);
             data.append("save_url", document.getElementById("save_url").value);
 
