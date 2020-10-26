@@ -15,3 +15,7 @@
 - AJAX - I know it isn't a language, but it was fairly complex and very useful 
 - HTML5
 - CSS3
+- APIs listed below...
+
+# APIs Utilized:
+- Google GeoCoding API, YouTube API, National Weather Service API, HTML5 Geolocation API
